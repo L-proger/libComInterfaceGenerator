@@ -36,21 +36,26 @@ public:
         //generate outputs
         for(auto& module : generateModules){
             auto codeFile = createCodeFile();
-            codeFile->writeModule(module);
+            codeFile->writeModule(module, true);
 
-            auto fileName = codeFile->getFileName(module);
-            auto filePath = outputPath / fileName;
-
-            auto code = codeFile->toString();
-
-            std::ofstream file;
-            file.open(filePath, std::ios::binary | std::ios::out);
-            file.write((char*) code.data(), code.size());
-            file.close();
-
-            std::cout << "Generating file: " << filePath << std::endl;
+           
+            saveCodeFile(outputPath, module->name, codeFile);
+         
            // std::cout << file->toString() << std::endl;
         }
+    }
+
+    void saveCodeFile(const std::filesystem::path& outputPath, const std::string& moduleName, std::shared_ptr<CodeFile> codeFile) {
+        auto fileName = codeFile->getFileName(moduleName);
+        auto filePath = outputPath / fileName;
+
+        auto code = codeFile->toString();
+
+        std::ofstream file;
+        file.open(filePath, std::ios::binary | std::ios::out);
+        file.write((char*)code.data(), code.size());
+        file.close();
+        std::cout << "Saving code file: " << filePath << std::endl;
     }
 protected:
     std::vector<std::shared_ptr<InterfaceType>> findAllInterfaces(std::vector<std::shared_ptr<Module>>& modules) {

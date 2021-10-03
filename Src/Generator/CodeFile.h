@@ -48,9 +48,11 @@ public:
         return *this;
     }
 
-    virtual void writeModule(std::shared_ptr<Module> module) = 0;
+    virtual void writeModule(std::shared_ptr<Module> module, bool writeTypes) = 0;
 
     virtual std::string getFileName(std::shared_ptr<Module> module) = 0;
+
+    virtual std::string getFileName(const std::string& moduleName) = 0;
 private:
 
     void finalizeLine() {

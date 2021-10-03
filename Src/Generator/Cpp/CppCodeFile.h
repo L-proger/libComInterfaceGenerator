@@ -23,7 +23,11 @@ public:
 
 
     std::string getFileName(std::shared_ptr<Module> module) override {
-        return module->name + ".h";
+        return getFileName(module->name);
+    }
+
+    std::string getFileName(const std::string& moduleName) override {
+        return moduleName + ".h";
     }
 
     std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
@@ -76,7 +80,7 @@ public:
         return references;
     }
 
-    void writeModule(std::shared_ptr<Module> module) override {
+    void writeModule(std::shared_ptr<Module> module, bool writeTypes) override {
         _module = module;
 
         writeLine("#pragma once");
@@ -101,9 +105,12 @@ public:
             writeLine(">");
         }
 
-        for(auto& type : module->types){
-            writeType(type->type);
+        if (writeTypes) {
+            for (auto& type : module->types) {
+                writeType(type->type);
+            }
         }
+        
 
     }
 private:

@@ -40,7 +40,11 @@ public:
         return *this;
     }
 
-    void writeModule(std::shared_ptr<Module> module) override {
+    std::string getFileName(const std::string& moduleName) override {
+        throw std::runtime_error("Not implemented");
+    }
+
+    void writeModule(std::shared_ptr<Module> module, bool writeTypes) override {
        /* auto deps = module->getDependencies();
 
         for(auto& dep : deps){
