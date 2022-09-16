@@ -2,7 +2,8 @@ $zipFileLocalPath = "$PSScriptRoot/antlr-source.zip"
 $rootSrcDirectory = "$PSScriptRoot/antlr_src"
 
 if(-not [System.IO.File]::Exists($zipFileLocalPath)){
-    wget https://www.antlr.org/download/antlr4-cpp-runtime-4.9.2-source.zip -outfile $zipFileLocalPath
+    wget https://www.antlr.org/download/antlr4-cpp-runtime-4.11.1-source.zip -outfile $zipFileLocalPath
+         
 }
 
 
@@ -54,19 +55,27 @@ if ($vsPath -and (Test-Path "$vsPath\Common7\Tools\vsdevcmd.bat")) {
     }
 }
 
-mkdir "$rootSrcDirectory/build"
-pushd "$rootSrcDirectory/build"
+mkdir "$rootSrcDirectory/build_release"
+pushd "$rootSrcDirectory/build_release"
 cmake ../
-    pushd "$rootSrcDirectory/build/runtime"
+    pushd "$rootSrcDirectory/build_release/runtime"
     msbuild antlr4_static.vcxproj  /p:configuration="Release" /p:platform=x64
-    msbuild antlr4_static.vcxproj  /p:configuration="Debug" /p:platform=x64
+    CopyDirectory -sourceDir "$rootSrcDirectory\dist" -targetDir "$rootDeployDirectory\lib\Release" -include "*.lib"
     popd
 popd
 
 
-CopyDirectory -sourceDir "$rootSrcDirectory\dist\Debug" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.lib"
-CopyDirectory -sourceDir "$rootSrcDirectory\dist\Debug" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.pdb"
-CopyDirectory -sourceDir "$rootSrcDirectory\dist\Release" -targetDir "$rootDeployDirectory\lib\Release" -include "*.lib"
+mkdir "$rootSrcDirectory/build_debug"
+pushd "$rootSrcDirectory/build_debug"
+cmake ../
+    pushd "$rootSrcDirectory/build_debug/runtime"
+    msbuild antlr4_static.vcxproj  /p:configuration="Debug" /p:platform=x64
+    CopyDirectory -sourceDir "$rootSrcDirectory\dist" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.lib"
+    CopyDirectory -sourceDir "$rootSrcDirectory\dist" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.pdb"
+    popd
+popd
+
+
 
 Remove-Item $rootSrcDirectory -Recurse -ErrorAction Ignore
 Remove-Item $zipFileLocalPath -Recurse -ErrorAction Ignore
