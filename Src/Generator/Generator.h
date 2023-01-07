@@ -13,35 +13,27 @@
 class Generator {
 public:
     Generator(){
-    }
-    void generate(const std::filesystem::path& outputPath) {
         auto allModules = TypeCache::getModules();
 
         //filter only generatable modules
-        std::vector<std::shared_ptr<Module>> generateModules;
         for(auto& module : allModules){
             auto externalModule = std::dynamic_pointer_cast<ExternalModule>(module) != nullptr;
             if((module->name != TypeCache::primitiveModuleName()) && !externalModule){
-                generateModules.push_back(module);
+                _writableModules.push_back(module);
             }
         }
 
         //validate interfaces
-        validateInterfaces(findAllInterfaces(generateModules));
-
-
+        validateInterfaces(findAllInterfaces(_writableModules));
+    }
+    void generate(const std::filesystem::path& outputPath) {
         std::filesystem::create_directories(outputPath);
 
-
         //generate outputs
-        for(auto& module : generateModules){
+        for(auto& module : _writableModules){
             auto codeFile = createCodeFile();
             codeFile->writeModule(module, true);
-
-           
             saveCodeFile(outputPath, module->name, codeFile);
-         
-           // std::cout << file->toString() << std::endl;
         }
     }
 
@@ -56,6 +48,10 @@ public:
         file.write((char*)code.data(), code.size());
         file.close();
         std::cout << "Saving code file: " << filePath << std::endl;
+    }
+
+    std::vector<std::shared_ptr<Module>>& getWritableModules() {
+        return _writableModules;
     }
 protected:
     std::vector<std::shared_ptr<InterfaceType>> findAllInterfaces(std::vector<std::shared_ptr<Module>>& modules) {
@@ -145,4 +141,6 @@ protected:
     }
 
     virtual std::shared_ptr<CodeFile> createCodeFile() = 0;
+
+    std::vector<std::shared_ptr<Module>> _writableModules;
 };

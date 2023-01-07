@@ -78,6 +78,8 @@ public:
         return references;
     }
 
+
+
     void writeModule(std::shared_ptr<Module> module, bool writeTypes) override {
         _module = module;
 
@@ -108,10 +110,9 @@ public:
                 writeType(type->type);
             }
         }
-        
-
     }
-private:
+protected:
+
     std::shared_ptr<Module> _module;
     void writeType(std::shared_ptr<Type> type) {
         auto interfaceType = std::dynamic_pointer_cast<InterfaceType>(type);
