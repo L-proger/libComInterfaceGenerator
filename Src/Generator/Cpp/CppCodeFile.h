@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <Generator/CodeFile.h>
 #include <Type/InterfaceType.h>
 #include <Type/StructType.h>
@@ -158,21 +156,21 @@ private:
         ss << "0x" << std::setw(8) << guid.data1;
         ss << ", ";
 
-        ss << "0x" << std::setw(4) << guid.data2;
+        ss << "0x" << std::setw(4) << guid.data3 << guid.data2;
         ss << ", ";
 
-        ss << "0x" << std::setw(4) << guid.data3;
-        ss << ", ";
-
-        ss << "{ ";
-
-        for(int i = 0; i < 8; ++i){
-             ss  << "0x" << std::setw(2) << +guid.data4[i];
-             if(i != 7){
-                ss << ", ";
-             }
+        ss << "0x";
+        for(int i = 0; i < 4; ++i){
+            ss << std::setw(2) << +guid.data4[3 - i];
         }
-        ss << " } }";
+        ss << ", ";
+
+        ss << "0x";
+        for(int i = 0; i < 4; ++i){
+            ss << std::setw(2) << +guid.data4[7 - i];
+        }
+
+        ss << " }";
         return ss.str();
     }
 
@@ -605,7 +603,9 @@ private:
                     write("const ");
                 }
                 write(fullName(arg.type->type));
-                if (arg.reference) {
+                
+                
+                if (arg.reference && !(_enableExceptions && returnType)) {
                     if (arg.type->type->name == "void") {
                         write("*");
                     }
