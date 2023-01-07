@@ -113,23 +113,6 @@ public:
         
 
     }
-
-
-    std::string fullName(std::shared_ptr<Type> type) {
-        auto module = TypeCache::findModule(type->moduleName);
-        if (std::dynamic_pointer_cast<ExternalModule>(module) != nullptr) {
-            return type->name;
-        }
-        else {
-            auto result = type->moduleName + "." + type->name;
-            return replaceAll(result, ".", "::");
-        }
-    }
-
-    std::string fullName(std::shared_ptr<TypeRef> type) {
-        return fullName(type->type);
-    }
-
 private:
     std::shared_ptr<Module> _module;
     void writeType(std::shared_ptr<Type> type) {
@@ -150,6 +133,20 @@ private:
             writeEnum(enumType);
             return;
         }
+    }
+
+    std::string fullName(std::shared_ptr<Type> type){
+        auto module = TypeCache::findModule(type->moduleName);
+        if(std::dynamic_pointer_cast<ExternalModule>(module) != nullptr){
+            return type->name;
+        }else{
+            auto result = type->moduleName + "." + type->name;
+            return replaceAll(result, ".", "::");
+        }
+    }
+
+    std::string fullName(std::shared_ptr<TypeRef> type){
+        return fullName(type->type);
     }
 
 

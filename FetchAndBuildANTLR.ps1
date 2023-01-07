@@ -1,9 +1,9 @@
-$zipFileLocalPath = "$PSScriptRoot/antlr-source.zip"
-$rootSrcDirectory = "$PSScriptRoot/antlr_src"
+$zipFileLocalPath = "$PSScriptRoot/antlr_cpp_runtime_src.zip"
+$rootSrcDirectory = "$PSScriptRoot/antlr_cpp_runtime_src"
 
 if(-not [System.IO.File]::Exists($zipFileLocalPath)){
-    wget https://www.antlr.org/download/antlr4-cpp-runtime-4.11.1-source.zip -outfile $zipFileLocalPath
-         
+        
+    wget https://www.antlr.org/download/antlr4-cpp-runtime-4.11.1-source.zip -O $zipFileLocalPath
 }
 
 
@@ -55,27 +55,19 @@ if ($vsPath -and (Test-Path "$vsPath\Common7\Tools\vsdevcmd.bat")) {
     }
 }
 
-mkdir "$rootSrcDirectory/build_release"
-pushd "$rootSrcDirectory/build_release"
+mkdir "$rootSrcDirectory/build"
+pushd "$rootSrcDirectory/build"
 cmake ../
-    pushd "$rootSrcDirectory/build_release/runtime"
+    pushd "$rootSrcDirectory/build/runtime"
     msbuild antlr4_static.vcxproj  /p:configuration="Release" /p:platform=x64
-    CopyDirectory -sourceDir "$rootSrcDirectory\dist" -targetDir "$rootDeployDirectory\lib\Release" -include "*.lib"
-    popd
-popd
-
-
-mkdir "$rootSrcDirectory/build_debug"
-pushd "$rootSrcDirectory/build_debug"
-cmake ../
-    pushd "$rootSrcDirectory/build_debug/runtime"
     msbuild antlr4_static.vcxproj  /p:configuration="Debug" /p:platform=x64
-    CopyDirectory -sourceDir "$rootSrcDirectory\dist" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.lib"
-    CopyDirectory -sourceDir "$rootSrcDirectory\dist" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.pdb"
     popd
 popd
 
 
+CopyDirectory -sourceDir "$rootSrcDirectory\dist\Debug" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.lib"
+CopyDirectory -sourceDir "$rootSrcDirectory\dist\Debug" -targetDir "$rootDeployDirectory\lib\Debug" -include "*.pdb"
+CopyDirectory -sourceDir "$rootSrcDirectory\dist\Release" -targetDir "$rootDeployDirectory\lib\Release" -include "*.lib"
 
 Remove-Item $rootSrcDirectory -Recurse -ErrorAction Ignore
 Remove-Item $zipFileLocalPath -Recurse -ErrorAction Ignore

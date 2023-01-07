@@ -4,6 +4,7 @@
 #include <Type/InterfaceType.h>
 #include <Type/StructType.h>
 #include <filesystem>
+#include <algorithm>
 
 class Module {
 public:

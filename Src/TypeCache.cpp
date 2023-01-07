@@ -45,7 +45,7 @@ std::filesystem::path TypeCache::findModulePath(const std::string& name){
             return modulePath;
         }
     }
-    throw std::exception("Failed to find module path");
+    throw std::runtime_error("Failed to find module path");
 }
 
 void TypeCache::addSearchPath(std::filesystem::path path){
