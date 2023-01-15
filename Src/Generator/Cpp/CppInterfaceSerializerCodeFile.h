@@ -2,14 +2,16 @@
 
 #include "CppCodeFile.h"
 
-class CppTaskCodeFile : public CppCodeFile {
+class CppInterfaceSerializerCodeFile : public CppCodeFile {
 public:
-    CppTaskCodeFile(bool enableExceptions, const std::string& interfaceName, bool directionOut) : CppCodeFile(enableExceptions), _interfaceName(interfaceName), _directionOut(directionOut) {
+    CppInterfaceSerializerCodeFile(bool enableExceptions, const std::string& interfaceName, bool directionOut) : CppCodeFile(enableExceptions), _interfaceName(interfaceName), _directionOut(directionOut) {
 
     }
-
+    static std::string getFileName(const std::string& interfaceName, bool directionOut) {
+        return interfaceName + ".Serializer." + (directionOut ? "Out" : "In") + ".h";
+    }
     std::string getFileName(const std::string& moduleName) override {
-        return _interfaceName + ".Serializer." + (_directionOut ? "Out" : "In") + ".h";
+        return getFileName(_interfaceName, _directionOut);
     }
     void writeSerializer(std::shared_ptr<Module> taskModule) {
         _module = taskModule;
@@ -18,6 +20,8 @@ public:
         auto typeGeneric = taskModule->findType(typeShortName);
         auto interfaceType = std::dynamic_pointer_cast<InterfaceType>(typeGeneric->type);
         writeLine("#pragma once");
+        writeLine("#include <LFramework/COM/ComObject.h>");
+        writeLine("#include <MicroNetwork.Common.h>"); 
         write("#include <").write(taskModule->name).writeLine(".h>");  
 
         beginNamespaceScope(_module->name);
@@ -28,16 +32,17 @@ public:
             writeInSerializer(interfaceType);
         }
         
-       
         endScope(); //End namespace scope
     }
 
-
+    static std::string getSerializerTypeName(const std::string& interfaceName, bool directionOut) {
+        auto typeShortName = interfaceName.substr(interfaceName.find_last_of('.') + 1);
+        return typeShortName + "Serializer" + (directionOut ? "Out" : "In");
+    }
 private:
 
     void writeOutSerializer(std::shared_ptr<InterfaceType> interfaceType) {
-        auto typeShortName = _interfaceName.substr(_interfaceName.find_last_of('.') + 1);
-        std::string serializerTypeName = typeShortName + "Serializer" + (_directionOut ? "Out" : "In");
+        std::string serializerTypeName = getSerializerTypeName(_interfaceName, _directionOut);
         write("class " + serializerTypeName + " : public LFramework::ComImplement<" + serializerTypeName + ", LFramework::ComObject, " +  fullName(interfaceType) + ">");
 
         beginScope("");//Begin class scope
@@ -50,8 +55,10 @@ private:
 
         //Methods
         int methodId = 0;
+        std::string resultType = _enableExceptions ? "void" : "LFramework::Result";
+
         for(auto& method : interfaceType->methods){
-            write("void ").write(method.name).write("(");
+            write(resultType + " ").write(method.name).write("(");
             writeWrapperArg(method.args[0], false);
             write(")");
             beginScope("");
@@ -60,7 +67,9 @@ private:
             write("header.id = ").writeLine(std::to_string(methodId) + ";");
             write("header.size = sizeof(").write(fullName(method.args[0].type)).writeLine(");");
 
-            write("_next->packet(header, &").write(method.args[0].name).writeLine(");");
+
+            std::string returnPrefix = _enableExceptions ? "" : "return ";
+            write(returnPrefix).write("_next->packet(header, &").write(method.args[0].name).writeLine(");");
             
             endScope();
 
@@ -75,8 +84,9 @@ private:
     }
 
     void writeInSerializer(std::shared_ptr<InterfaceType> interfaceType) {
-        auto typeShortName = _interfaceName.substr(_interfaceName.find_last_of('.') + 1);
-        std::string serializerTypeName = typeShortName + "Serializer" + (_directionOut ? "Out" : "In");
+        std::string serializerTypeName = getSerializerTypeName(_interfaceName, _directionOut);
+
+
         write("class " + serializerTypeName + " : public LFramework::ComImplement<" + serializerTypeName + ", LFramework::ComObject, MicroNetwork::Common::IDataReceiver>");
 
         beginScope("");//Begin class scope
@@ -89,7 +99,10 @@ private:
 
         //Methods
         int methodId = 0;
-        write("void packet(MicroNetwork::Common::PacketHeader header, const void* data)");
+
+        std::string resultType = _enableExceptions ? "void" : "LFramework::Result";
+
+        write(resultType + " packet(MicroNetwork::Common::PacketHeader header, const void* data)");
         beginScope("");
             write("switch (header.id)");
             beginScope("");
@@ -97,13 +110,21 @@ private:
             for(auto& method : interfaceType->methods){
                 unident().write("case ").write(std::to_string(methodId)).writeLine(":").ident();
                 write("_next->").write(method.name).write("(*(reinterpret_cast<const ").write(fullName(method.args[0].type)).writeLine("*>(data)));");
-                writeLine("return;");
+                
+                if(_enableExceptions){
+                    writeLine("return;");
+                }else{
+                    writeLine("return LFramework::Result::Ok;");
+                }
                 ++methodId;
             }
             
             unident().writeLine("default:").ident();
-            writeLine("throw LFramework::ComException(LFramework::Result::NotImplemented);");
-
+            if(_enableExceptions){
+                writeLine("throw LFramework::ComException(LFramework::Result::NotImplemented);");
+            }else{
+                writeLine("return LFramework::Result::InvalidArg;");
+            }
             endScope();
         endScope();
 

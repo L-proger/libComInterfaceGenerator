@@ -11,7 +11,7 @@
 #include <Generator/Cpp/CppMarshaler.h>
 
 class CppCodeFile : public CodeFile {
-private:
+protected:
     bool _enableExceptions = true;
 public:
 
@@ -28,7 +28,7 @@ public:
         return moduleName + ".h";
     }
 
-    std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
+    static std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
         size_t start_pos = 0;
         while((start_pos = str.find(from, start_pos)) != std::string::npos) {
             str.replace(start_pos, from.length(), to);
@@ -37,8 +37,12 @@ public:
         return str;
     }
 
+    static std::string toCppNamespace(std::string name) {
+        return replaceAll(name, ".", "::");
+    }
+
     CppCodeFile& beginNamespaceScope(std::string name) {
-        name = replaceAll(name, ".", "::");
+        name = toCppNamespace(name);
         write("namespace " + name);
         beginScope(name);
         return *this;
