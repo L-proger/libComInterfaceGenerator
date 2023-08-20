@@ -251,7 +251,7 @@ protected:
 
             auto args = getAbiMethodArgs(method, !_enableExceptions);
 
-           
+            //Write marshalers
             for (std::size_t i = 0; i < args.size(); ++i) {
                 auto arg = args[i];
                 auto attrs = AttributeList::parse(arg.attributes);
@@ -265,6 +265,10 @@ protected:
                     else if (method.returnType.array) {
                         write("std::vector<").write(fullName(arg.type)).write("> ").write(CppMarshaler::getVariableName(arg.name)).writeLine(";");
                     }
+                }else if(isInterface(arg) && !outAttr){
+                    write("LFramework::ComPtr<").write(fullName(arg.type)).write("> ").write(CppMarshaler::getVariableName(arg.name)).writeLine(";");
+                    write(CppMarshaler::getVariableName(arg.name)).write(".attach(").write(arg.name).writeLine(");");
+
                 }
             }
 
@@ -297,6 +301,9 @@ protected:
                 auto outAttr = attrs.getAttribute<OutAttribute>();
 
                 if (CppMarshaler::shouldMarshal(arg) && outAttr) {
+                    write(CppMarshaler::getVariableName(arg.name));
+                }
+                else if(isInterface(arg) && !outAttr){
                     write(CppMarshaler::getVariableName(arg.name));
                 }
                 else {
