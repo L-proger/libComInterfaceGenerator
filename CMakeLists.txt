@@ -11,7 +11,7 @@ set_property(TARGET libComInterfaceGenerator PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 target_include_directories(libComInterfaceGenerator 
-	PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/generated/Grammar"
+	PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/generated"
 	PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/antlr_cpp_runtime_src/runtime/src"
 )
 
