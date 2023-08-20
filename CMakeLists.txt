@@ -19,10 +19,10 @@ add_subdirectory(Src)
 
 target_sources(libComInterfaceGenerator 
 	PRIVATE 
-		generated/Grammar/CidlBaseListener.cpp 
-		generated/Grammar/CidlLexer.cpp 
-		generated/Grammar/CidlListener.cpp
-		generated/Grammar/CidlParser.cpp
+		generated/CidlBaseListener.cpp 
+		generated/CidlLexer.cpp 
+		generated/CidlListener.cpp
+		generated/CidlParser.cpp
 )
 
 
